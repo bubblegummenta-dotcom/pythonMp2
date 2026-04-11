@@ -1,6 +1,16 @@
 phpMp2
 ======
 
+---
+
+[![Moved to Codeberg](https://img.shields.io/badge/moved_to-Codeberg-%232185D0?logo=codeberg&logoColor=white)][codeberg project]
+
+**Notice: This project has [moved to Codeberg.org][codeberg project]. All further development will take place there.**
+
+[codeberg project]: https://codeberg.org/whitelynx/phpMp2
+
+---
+
 A web-based client for [MPD][] or [Mopidy][], written in [PHP][] as a replacement for phpMp.
 
 ![phpMp2 sceenshot](screenshot.png "phpMp2 screenshot")
