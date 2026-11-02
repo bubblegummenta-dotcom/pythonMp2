@@ -1,6 +1,7 @@
 services:
   mpd:
     image: gists/mpd
+    container_name: mpd
     ports:
       - "6600:6600"
       - "8000:8000"
@@ -11,17 +12,21 @@ services:
       - "./mpd-data/mpd.conf:/etc/mpd.conf"
       - "./mpd-data/music:/music"
       - "./mpd-data/playlists:/var/lib/mpd/playlists"
-    command: [ "sh", "-c", "chown 100:100 /run/user/100/*; mpd --stdout --no-daemon" ]
+    command: [ "sh", "-c", "chown 100:100 /run/user/100/* 2>/dev/null || true; mpd --stdout --no-daemon" ]
     restart: unless-stopped
+
   web:
-    image: shinsenter/phpfpm-nginx:php8-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flet-music-player
     environment:
-      APP_UID: "$UID"
-      APP_GID: "100"
-    links:
+      HOST: "0.0.0.0"
+      PORT: "7080"
+      MPD_HOST: "mpd"
+      MPD_PORT: "6600"
+    depends_on:
       - mpd
     ports:
-      - "7080:80"
-    volumes:
-      - .:/var/www/html
+      - "7080:7080"
     restart: unless-stopped

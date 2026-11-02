@@ -1,140 +1,112 @@
-phpMp2
-======
+# Flet Music Player (MPD Client)
+
+Cliente moderno, responsivo y ligero para [MPD (Music Player Daemon)](https://www.musicpd.org/) y [Mopidy](https://mopidy.com/), reescrito completamente en **Python 3 + Flet** con una interfaz inspirada en reproductores multimedia modernos (estilo VLC).
+
+Diseñado específicamente para ofrecer una experiencia limpia, rápida y cómoda desde dispositivos móviles y navegadores web.
 
 ---
 
-[![Moved to Codeberg](https://img.shields.io/badge/moved_to-Codeberg-%232185D0?logo=codeberg&logoColor=white)][codeberg project]
+## Características
 
-**Notice: This project has [moved to Codeberg.org][codeberg project]. All further development will take place there.**
-
-[codeberg project]: https://codeberg.org/whitelynx/phpMp2
+- 📱 **Diseño Móvil / Responsive**: UI moderna inspirada en VLC y Material Design con soporte para temas oscuros.
+- ⏯️ **Controles de Reproducción**: Play, Pause, Stop, Siguiente, Anterior.
+- 🔊 **Volumen y Búsqueda (Seek)**: Barras deslizantes interactivas para volumen y navegación en la pista actual.
+- 🔀 **Aleatorio y Repetición**: Modos Random y Repeat fácilmente activables.
+- 📋 **Gestión de Colas (Queue/Playlist)**: Visualiza la lista de reproducción actual, salta directamente a cualquier canción, elimina pistas individuales o vacía la cola.
+- 📁 **Explorador de Biblioteca por Carpetas**: Navegación ágil por el árbol de directorios de música con botones rápidos para reproducir pistas o añadir carpetas completas a la cola.
+- ⚙️ **Configuración Flexible**: Conexión a MPD mediante variables de entorno o mediante el diálogo de ajustes integrado.
+- 🐳 **Preparado para Podman y Docker**: Empaquetado optimizado en contenedor ligero con soporte directo para Linux server.
 
 ---
 
-A web-based client for [MPD][] or [Mopidy][], written in [PHP][] as a replacement for phpMp.
+## Requisitos
 
-![phpMp2 sceenshot](screenshot.png "phpMp2 screenshot")
+- Python 3.10 o superior
+- Servidor [MPD][] o [Mopidy][] accesible en red local o en contenedor.
 
-A note from the author:
------------------------
-First, some history: This client was originally written in 2004-2005 by me,
-[David H. Bronke](https://github.com/whitelynx), and was lost for many years because of lack of maintenance and
-migration of the MPD codebase. I recently (late 2024) discovered a set of my backups that included 3 of the original
-phpMp2 releases, and I decided to import them into Git and push the result to GitHub.
+---
 
-I figured I'd try out this 20-year-old project since I was releasing it to the public again, and it turns out it
-**still works!** Even after upgrading to the latest versions of MPD and PHP (and even when trying Mopidy), the client
-is still functional, only needing some minor bugfixes and quality of life improvements - most notably, a couple of new
-Docker Compose stacks to make local use easier.
+## Ejecución Local
 
-It's surprising and gratifying to see one of my earliest [open source](COPYING) projects still usable!
+1. Instalar dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Using your own HTTP server and MPD/Mopidy server:
--------------------------------------------------
+2. Configurar variables de entorno (opcional, por defecto conecta a `localhost:6600`):
+   ```bash
+   export MPD_HOST=127.0.0.1
+   export MPD_PORT=6600
+   export PORT=7080
+   ```
 
-### Requirements:
-- [MPD][] or [Mopidy][]
-- nginx _(or any HTTP server of your choice that can run PHP)_
-- [PHP][] 4.1 or higher
-- GD support in PHP for graphical sliders
+3. Ejecutar la aplicación:
+   ```bash
+   python -m app.main
+   ```
 
-### Setup:
-Download phpMp2 and extract into a directory on your webserver:
+4. Abrir en el navegador móvil o de escritorio:
+   ```
+   http://localhost:7080
+   ```
 
-    tar xjvf phpMp2-0.12.0-rc2.tar.gz
+---
 
-Alternatively, you can use git to get the latest bleeding-edge version:
+## Despliegue con Podman en Linux Server
 
-    git clone https://github.com/whitelynx/phpMp2
+Puedes construir y ejecutar el contenedor usando **Podman**:
 
-Edit `config.php`; This file contains numerous configuration options described
-in the comments in the file.
-
-Surf to the location of the extracted tarball with your web browser.
-
-Using all-in-one MPD stack:
----------------------------
-You can use the provided `docker-compose.yml` to run
-[MPD][] and phpMp2 in [Docker](https://www.docker.com/).
-
-Before running, create the `mpd-data/config`, `mpd-data/music`, and `mpd-data/playlists` directories:
+### 1. Construir la imagen
 ```bash
-mkdir -p mpd-data/{config,music,playlists}
+podman build -t flet-music-player:latest .
 ```
 
-You can place media files in the `mpd-data/music` directory.
-
-Next, bring up the Docker Compose stack:
+### 2. Ejecutar el contenedor
 ```bash
-docker compose up
+podman run -d \
+  --name flet-music-player \
+  -p 7080:7080 \
+  -e MPD_HOST=192.168.1.100 \
+  -e MPD_PORT=6600 \
+  --restart unless-stopped \
+  flet-music-player:latest
 ```
 
-Finally, you can browse to <http://localhost:7080> to use phpMp2.
+*(Reemplaza `192.168.1.100` por la IP o nombre de tu servidor MPD).*
 
-Using all-in-one Mopidy stack:
-------------------------------
-You can use the provided `docker-compose-mopidy.yml` to run
-[Mopidy][] and phpMp2 in [Docker](https://www.docker.com/).
+### 3. Usar con Podman Compose / Docker Compose
 
-Before running, create the `mopidy-data/media`, `mopidy-data/local`, and `mopidy-data/playlists` directories:
+Si deseas desplegar la aplicación junto a un servidor MPD:
+
 ```bash
-mkdir -p mopidy-data/{media,local,playlists}
+podman compose up -d
+# O con docker compose:
+docker compose up -d
 ```
 
-You can place media files in the `mopidy-data/media` directory and then index it with the `wernight/mopidy` image:
+---
+
+## Variables de Entorno
+
+| Variable | Descripción | Valor por defecto |
+|---|---|---|
+| `HOST` | Dirección IP donde escucha el servidor web Flet | `0.0.0.0` |
+| `PORT` | Puerto HTTP para acceder a la app web | `7080` |
+| `MPD_HOST` | Host o IP del servidor MPD | `mpd` o `localhost` |
+| `MPD_PORT` | Puerto del demonio MPD | `6600` |
+| `MPD_PASSWORD` | Contraseña del servidor MPD (si requiere) | `""` |
+
+---
+
+## Ejecutar Pruebas
+
+Para ejecutar el conjunto de pruebas unitarias:
 ```bash
-docker run --rm \
-    --device /dev/snd --user 105:100 \
-    -v "$PWD/mopidy-data/media:/var/lib/mopidy/media:ro" \
-    -v "$PWD/mopidy-data/local:/var/lib/mopidy/local" \
-    -v "$PWD/mopidy-data/playlits:/var/lib/mopidy/playlits" \
-    -p 6680:6680 \
-    wernight/mopidy mopidy local scan
+python3 -m pytest -v
 ```
 
-Next, bring up the Docker Compose stack:
-```bash
-docker compose -f docker-compose-mopidy.yml up
-```
+---
 
-Finally, you can browse to <http://localhost:7080> to use phpMp2.
+## Licencia
 
-Credits:
---------
-- phpMp written by Warren Dukes (shank)
-- phpMp2 written by David H. Bronke ([whitelynx](https://github.com/whitelynx);
-  formerly nosferat)
-
-Bugs:
------
-See `TODO` for information on known bugs that need to be fixed.
-If you find a bug, please file an issue in
-[this repository](https://github.com/whitelynx/phpMp2).
-
-License:
---------
-Ths code is released under the terms of the
-[GNU General Public License v3.0](COPYING).
-
-Changes:
---------
-version 2b2r1 -> 0.11.0 (change in versioning to match MPD)
-- too many changes to list, since there hasn't been a release in ages... now
-  supports streams, playlist uploading, search, sort, browsing by tags, playlist
-  IDs, graphical sliders, combined sliders, separate styles and layouts,
-  on-the-fly configuration, and much more.
-
-version 2b2 -> 2b2r1
-- fixed the crossfade function for newest version of mpd.
-- fixed bug in volume slider in frames layouts.
-
-version 2b1 -> 2b2
-- too many things to remember
-
-version 0.9.1 -> 2b1
-- complete rewrite
-
-
-[MPD]: https://musicpd.org/
-[Mopidy]: https://mopidy.com/
-[PHP]: https://www.php.net/
+Este proyecto está bajo los términos de la [GNU General Public License v3.0](COPYING).
